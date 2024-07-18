@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图片上传网站</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f7f7f7;
+            text-align: center;
+            padding: 50px;
+        }
+        .container {
+            margin: 0 auto;
+            width: 80%;
+            max-width: 600px;
+        }
+        .media-container {
+            margin: 20px 0;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>图片上传网站</h1>
+        <div class="media-container" id="mediaContainer">
+            <input type="file" id="fileInput">
+            <button onclick="uploadImage()">上传图片</button>
+            <button onclick="deleteImage()">删除图片</button>
+            <div id="imageGallery"></div>
+        </div>
+    </div>
+    <script>
+        async function uploadImage() {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+            if (file) {
+                const formData = new FormData();
+                formData.append('file', file);
+
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    const img = document.createElement('img');
+                    img.src = result.path;
+                    img.alt = file.name;
+                    document.getElementById('imageGallery').appendChild(img);
+                } else {
+                    alert('文件上传失败');
+                }
+            } else {
+                alert('请先选择一个文件');
+            }
+        }
+
+        async function deleteImage() {
+            const gallery = document.getElementById('imageGallery');
+            const imgs = gallery.getElementsByTagName('img');
+            if (imgs.length > 0) {
+                const lastImg = imgs[imgs.length - 1];
+                const filename = lastImg.src.split('/').pop();
+
+                const response = await fetch(`/api/delete?filename=${filename}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    gallery.removeChild(lastImg);
+                } else {
+                    alert('文件删除失败');
+                }
+            } else {
+                alert('没有图片可删除');
+            }
+        }
+    </script>
+</body>
+</html>
